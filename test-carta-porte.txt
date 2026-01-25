@@ -1,0 +1,36 @@
+DATOS DE EJEMPLO - CARTA PORTE
+
+CLIENTE / RECEPTOR:
+RFC: XIA190128J61
+Nombre: Transportes del Norte SA de CV
+Código Postal: 64000
+Régimen Fiscal: 601
+
+ORIGEN:
+Nombre: Almacén Guadalupe
+Dirección: Av. Industrias 123, Col. Industrial
+Código Postal: 67100
+Estado: Nuevo León
+
+DESTINO:
+Nombre: Centro de Distribución Saltillo
+Dirección: Blvd. Fundadores 456
+Código Postal: 25000
+Estado: Coahuila
+
+MERCANCÍAS:
+- Descripción: Electrónicos - Laptops Dell
+  Cantidad: 25 unidades
+  Peso total: 120 KG
+  Valor: $125,000.00 MXN
+
+VEHÍCULO:
+Placas: NL-ABC-1234
+Modelo/Año: 2021
+Aseguradora: Qualitas Seguros
+Póliza: Q-987654
+
+OPERADOR:
+Nombre: José Luis Hernández Ramírez
+RFC: HERJ850615XY8
+Licencia: 123456789

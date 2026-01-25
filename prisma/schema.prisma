@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Job {
+  id          String   @id @default(uuid())
+  status      String   // RECEIVED, EXTRACTING, NEEDS_REVIEW, READY, ISSUING, ISSUED, FAILED
+  owner       String   // "User" for MVP
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Documents
+  storagePath String?
+  fileType    String?
+  
+  // Extracted Data
+  extractedJson String? // Stored as JSON string
+  
+  // Emission Results
+  facturamaId  String?
+  uuid         String?
+}
