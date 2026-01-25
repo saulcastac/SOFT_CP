@@ -32,14 +32,22 @@ type ExtractedData = {
         unidad: string;
         pesoKg: number;
         valorMercancia: number;
+        moneda: string;
         claveProdServ?: string;
         claveUnidad?: string;
+        materialPeligroso?: string;
+        cveMaterialPeligroso?: string;
+        embalaje?: string;
+        descripEmbalaje?: string;
     }[];
     autotransporte: {
         placaVehiculo: string;
         modeloAnio: number;
         aseguradora?: string;
         numPolizaSeguro?: string;
+        permSCT?: string;
+        numPermisoSCT?: string;
+        configVehicular?: string;
     };
     operador: {
         nombre: string;
@@ -468,12 +476,55 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Valor</label>
                                     <input
                                         type="number"
                                         value={item.valorMercancia}
                                         onChange={(e) => handleFieldChange(`mercancias.${index}.valorMercancia`, Number(e.target.value))}
                                         className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Moneda</label>
+                                    <select
+                                        value={item.moneda || "MXN"}
+                                        onChange={(e) => handleFieldChange(`mercancias.${index}.moneda`, e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    >
+                                        <option value="MXN">MXN</option>
+                                        <option value="USD">USD</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Material Peligroso</label>
+                                    <select
+                                        value={item.materialPeligroso || "No"}
+                                        onChange={(e) => handleFieldChange(`mercancias.${index}.materialPeligroso`, e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    >
+                                        <option value="No">No</option>
+                                        <option value="Sí">Sí</option>
+                                    </select>
+                                </div>
+                                {item.materialPeligroso === "Sí" && (
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Clave Mat. Peligroso</label>
+                                        <input
+                                            type="text"
+                                            value={item.cveMaterialPeligroso || ""}
+                                            onChange={(e) => handleFieldChange(`mercancias.${index}.cveMaterialPeligroso`, e.target.value)}
+                                            className="w-full px-3 py-2 rounded-lg border bg-background"
+                                            placeholder="Ej: 1263"
+                                        />
+                                    </div>
+                                )}
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Embalaje</label>
+                                    <input
+                                        type="text"
+                                        value={item.embalaje || ""}
+                                        onChange={(e) => handleFieldChange(`mercancias.${index}.embalaje`, e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg border bg-background"
+                                        placeholder="Ej: 4H2"
                                     />
                                 </div>
                             </div>
@@ -519,6 +570,35 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 value={extractedData.autotransporte.numPolizaSeguro || ""}
                                 onChange={(e) => handleFieldChange("autotransporte.numPolizaSeguro", e.target.value)}
                                 className="w-full px-3 py-2 rounded-lg border bg-background"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Permiso SCT</label>
+                            <input
+                                type="text"
+                                value={extractedData.autotransporte.permSCT || ""}
+                                onChange={(e) => handleFieldChange("autotransporte.permSCT", e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                placeholder="Ej: TPAF01"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Núm. Permiso SCT</label>
+                            <input
+                                type="text"
+                                value={extractedData.autotransporte.numPermisoSCT || ""}
+                                onChange={(e) => handleFieldChange("autotransporte.numPermisoSCT", e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Config Vehicular</label>
+                            <input
+                                type="text"
+                                value={extractedData.autotransporte.configVehicular || ""}
+                                onChange={(e) => handleFieldChange("autotransporte.configVehicular", e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                placeholder="Ej: VL"
                             />
                         </div>
                     </div>

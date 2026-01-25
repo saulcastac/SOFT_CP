@@ -78,23 +78,37 @@ function transformToCFDI(extractedData: ExtractedData) {
                     PesoBrutoTotal: extractedData.mercancias.reduce((sum, m) => sum + m.pesoKg, 0),
                     UnidadPeso: "KGM",
                     NumTotalMercancias: extractedData.mercancias.length,
-                    Mercancia: extractedData.mercancias.map((m) => ({
-                        BienesTransp: "01010101", // Clave SAT - should come from extractedData
-                        Descripcion: m.descripcion,
-                        Cantidad: m.cantidad,
-                        ClaveUnidad: "KGM",
-                        Unidad: m.unidad,
-                        PesoEnKg: m.pesoKg,
-                        ValorMercancia: m.valorMercancia,
-                        Moneda: "MXN",
-                    })),
+                    Mercancia: extractedData.mercancias.map((m) => {
+                        const mercancia: any = {
+                            BienesTransp: m.claveProdServ || "01010101",
+                            Descripcion: m.descripcion,
+                            Cantidad: m.cantidad,
+                            ClaveUnidad: m.claveUnidad || "KGM",
+                            Unidad: m.unidad,
+                            PesoEnKg: m.pesoKg,
+                            ValorMercancia: m.valorMercancia,
+                            Moneda: m.moneda || "MXN",
+                            MaterialPeligroso: m.materialPeligroso || "No",
+                        };
+
+                        if (m.materialPeligroso === "Sí" && m.cveMaterialPeligroso) {
+                            mercancia.CveMaterialPeligroso = m.cveMaterialPeligroso;
+                        }
+
+                        if (m.embalaje) {
+                            mercancia.Embalaje = m.embalaje;
+                            mercancia.DescripEmbalaje = m.descripEmbalaje || "";
+                        }
+
+                        return mercancia;
+                    }),
 
                     // Autotransporte
                     Autotransporte: {
-                        PermSCT: "TPAF01", // Autotransporte Federal de Carga
-                        NumPermisoSCT: "ABC123456", // Should come from config/extractedData
+                        PermSCT: extractedData.autotransporte.permSCT || "TPAF01",
+                        NumPermisoSCT: extractedData.autotransporte.numPermisoSCT || "000000",
                         IdentificacionVehicular: {
-                            ConfigVehicular: "C2", // Should come from extractedData
+                            ConfigVehicular: extractedData.autotransporte.configVehicular || "C2",
                             PlacaVM: extractedData.autotransporte.placaVehiculo,
                             AnioModeloVM: extractedData.autotransporte.modeloAnio,
                         },

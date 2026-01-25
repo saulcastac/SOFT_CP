@@ -3,7 +3,6 @@ import fs from "fs/promises";
 import path from "path";
 import * as XLSX from "xlsx";
 
-
 // Type definitions
 export type ExtractedData = {
     receptor: {
@@ -32,14 +31,22 @@ export type ExtractedData = {
         unidad: string;
         pesoKg: number;
         valorMercancia: number;
-        claveProdServ?: string; // SAT product/service code
+        moneda: string;
+        claveProdServ?: string; // SAT product/service code (BienesTransp)
         claveUnidad?: string;   // SAT unit code
+        materialPeligroso?: string; // "Sí" or "No"
+        cveMaterialPeligroso?: string;
+        embalaje?: string;
+        descripEmbalaje?: string;
     }[];
     autotransporte: {
         placaVehiculo: string;
         modeloAnio: number;
         aseguradora?: string;
         numPolizaSeguro?: string;
+        permSCT?: string;
+        numPermisoSCT?: string;
+        configVehicular?: string;
     };
     operador: {
         nombre: string;
@@ -71,7 +78,6 @@ async function extractTextFromFile(filePath: string, fileType: string): Promise<
             fileType === "application/vnd.ms-excel"
         ) {
             // Read Excel file as buffer and parse with XLSX
-            // Using buffer approach instead of readFile for better Next.js compatibility
             const fileBuffer = await fs.readFile(absolutePath);
             const workbook = XLSX.read(fileBuffer, { type: "buffer" });
             let text = "";
@@ -101,10 +107,8 @@ export async function extractCartaPorteData(
     fileType: string
 ): Promise<ExtractedData> {
     try {
-        // Extract text from file
         const fileText = await extractTextFromFile(filePath, fileType);
 
-        // System prompt for structured extraction
         const systemPrompt = `Eres un experto en logística y transporte en México, especializado en Carta Porte 3.1 y CFDI 4.0.
 
 Tu tarea es extraer información de documentos de transporte y organizarla según la estructura de Carta Porte.
@@ -118,19 +122,18 @@ REGLAS IMPORTANTES:
 - Para códigos postales, busca números de 5 dígitos
 - Si encuentras datos parciales o incompletos, extráelos de todas formas y asigna un confidence bajo
 
-Para confidence scores (0.0 a 1.0):
-- 0.9-1.0: Dato explícito y claramente visible
-- 0.7-0.89: Dato inferido pero razonable
-- 0.5-0.69: Dato parcial o ambiguo
-- 0.0-0.49: Dato no encontrado o muy incierto
+CLASIFICACIÓN DE MERCANCÍAS (IMPORTANTE):
+- Intenta inferir la 'claveProdServ' (Clave SAT de BienesTransp) basándote en la descripción de la mercancía. Usa tu conocimiento del catálogo c_ClaveProdServCP del SAT y CFDI. Si tienes alta confianza (0.9+), asígnala. Si no, déjala vacía.
+- Intenta inferir 'claveUnidad' (Clave SAT H87, KGM, etc.) basándote en la unidad descrita.
+- Detecta si es 'materialPeligroso' (Sí/No) por la naturaleza de la carga.
 
-Devuelve ÚNICAMENTE un JSON válido con esta estructura EXACTA:
+Estructura JSON requerida (Carta Porte 3.1):
 {
   "receptor": {
     "rfc": "string o vacío",
     "nombre": "string o vacío", 
     "codigoPostal": "string o vacío",
-    "regimenFiscal": "string o vacío (601 por defecto si no encuentras)"
+    "regimenFiscal": "string o vacío (601 por defecto)"
   },
   "ubicaciones": {
     "origen": {
@@ -149,17 +152,25 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura EXACTA:
   "mercancias": [{
     "descripcion": "string o vacío",
     "cantidad": 0,
-    "unidad": "string o vacío",
+    "unidad": "string o vacío (kg, caja, piezas, etc)",
     "pesoKg": 0,
     "valorMercancia": 0,
-    "claveProdServ": "string o vacío (código SAT si visible)",
-    "claveUnidad": "string o vacío (código SAT si visible)"
+    "moneda": "MXN",
+    "claveProdServ": "string (clave SAT sugerida)",
+    "claveUnidad": "string (clave SAT sugerida)",
+    "materialPeligroso": "No",
+    "cveMaterialPeligroso": "",
+    "embalaje": "",
+    "descripEmbalaje": ""
   }],
   "autotransporte": {
     "placaVehiculo": "string o vacío",
     "modeloAnio": 0,
     "aseguradora": "string o vacío",
-    "numPolizaSeguro": "string o vacío"
+    "numPolizaSeguro": "string o vacío",
+    "permSCT": "string o vacío",
+    "numPermisoSCT": "string o vacío",
+    "configVehicular": "string o vacío"
   },
   "operador": {
     "nombre": "string o vacío",
@@ -179,15 +190,12 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura EXACTA:
 
         // Use Vision API for PDFs and images
         if (fileType === "application/pdf" || fileType.startsWith("image/")) {
-            // Convert relative paths to absolute paths
             const absolutePath = path.isAbsolute(filePath)
                 ? filePath
                 : path.join(process.cwd(), filePath);
 
             const fileBuffer = await fs.readFile(absolutePath);
             const base64File = fileBuffer.toString("base64");
-
-            // Determine media type
             const mediaType = fileType === "application/pdf" ? "application/pdf" : fileType;
 
             const response = await openai.chat.completions.create({
@@ -242,8 +250,6 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura EXACTA:
         return extractedData as ExtractedData;
     } catch (error: any) {
         console.error("OpenAI extraction error:", error);
-
-        // Fallback to empty data if OpenAI fails
         console.warn("Falling back to empty data due to extraction error");
         return getEmptyData();
     }
@@ -258,7 +264,7 @@ function getEmptyData(): ExtractedData {
             rfc: "",
             nombre: "",
             codigoPostal: "",
-            regimenFiscal: "601", // Default regime
+            regimenFiscal: "601",
         },
         ubicaciones: {
             origen: {
@@ -269,6 +275,7 @@ function getEmptyData(): ExtractedData {
             },
             destino: {
                 nombre: "",
+                rfc: "",
                 codigoPostal: "",
                 estado: "",
             },
@@ -280,8 +287,13 @@ function getEmptyData(): ExtractedData {
                 unidad: "",
                 pesoKg: 0,
                 valorMercancia: 0,
+                moneda: "MXN",
                 claveProdServ: "",
                 claveUnidad: "",
+                materialPeligroso: "No",
+                cveMaterialPeligroso: "",
+                embalaje: "",
+                descripEmbalaje: "",
             },
         ],
         autotransporte: {
@@ -289,6 +301,9 @@ function getEmptyData(): ExtractedData {
             modeloAnio: 0,
             aseguradora: "",
             numPolizaSeguro: "",
+            permSCT: "",
+            numPermisoSCT: "",
+            configVehicular: "",
         },
         operador: {
             nombre: "",
