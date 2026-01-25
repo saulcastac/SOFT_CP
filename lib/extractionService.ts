@@ -32,6 +32,8 @@ export type ExtractedData = {
         unidad: string;
         pesoKg: number;
         valorMercancia: number;
+        claveProdServ?: string; // SAT product/service code
+        claveUnidad?: string;   // SAT unit code
     }[];
     autotransporte: {
         placaVehiculo: string;
@@ -149,7 +151,9 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura EXACTA:
     "cantidad": 0,
     "unidad": "string o vacío",
     "pesoKg": 0,
-    "valorMercancia": 0
+    "valorMercancia": 0,
+    "claveProdServ": "string o vacío (código SAT si visible)",
+    "claveUnidad": "string o vacío (código SAT si visible)"
   }],
   "autotransporte": {
     "placaVehiculo": "string o vacío",
@@ -276,6 +280,8 @@ function getEmptyData(): ExtractedData {
                 unidad: "",
                 pesoKg: 0,
                 valorMercancia: 0,
+                claveProdServ: "",
+                claveUnidad: "",
             },
         ],
         autotransporte: {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import CatalogSelect from "@/components/CatalogSelect";
 
 // Type definitions (duplicated from server to avoid import issues)
 type ExtractedData = {
@@ -31,6 +32,8 @@ type ExtractedData = {
         unidad: string;
         pesoKg: number;
         valorMercancia: number;
+        claveProdServ?: string;
+        claveUnidad?: string;
     }[];
     autotransporte: {
         placaVehiculo: string;
@@ -314,11 +317,11 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                             <label className="block text-sm font-medium mb-1">
                                 Régimen Fiscal
                             </label>
-                            <input
-                                type="text"
+                            <CatalogSelect
+                                catalog="regimes"
                                 value={extractedData.receptor.regimenFiscal}
-                                onChange={(e) => handleFieldChange("receptor.regimenFiscal", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                onChange={(value) => handleFieldChange("receptor.regimenFiscal", value)}
+                                placeholder="Seleccionar régimen fiscal"
                             />
                         </div>
                     </div>
@@ -360,11 +363,11 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Estado</label>
-                                <input
-                                    type="text"
+                                <CatalogSelect
+                                    catalog="states"
                                     value={extractedData.ubicaciones.origen.estado}
-                                    onChange={(e) => handleFieldChange("ubicaciones.origen.estado", e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    onChange={(value) => handleFieldChange("ubicaciones.origen.estado", value)}
+                                    placeholder="Seleccionar estado"
                                 />
                             </div>
                         </div>
@@ -393,11 +396,11 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Estado</label>
-                                <input
-                                    type="text"
+                                <CatalogSelect
+                                    catalog="states"
                                     value={extractedData.ubicaciones.destino.estado}
-                                    onChange={(e) => handleFieldChange("ubicaciones.destino.estado", e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    onChange={(value) => handleFieldChange("ubicaciones.destino.estado", value)}
+                                    placeholder="Seleccionar estado"
                                 />
                             </div>
                         </div>
@@ -410,6 +413,15 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                     {extractedData.mercancias.map((item, index) => (
                         <div key={index} className="mb-4 p-4 border rounded-lg">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="md:col-span-3">
+                                    <label className="block text-sm font-medium mb-1">Clave Producto/Servicio (SAT)</label>
+                                    <CatalogSelect
+                                        catalog="products"
+                                        value={item.claveProdServ || ""}
+                                        onChange={(value) => handleFieldChange(`mercancias.${index}.claveProdServ`, value)}
+                                        placeholder="Buscar clave de producto/servicio"
+                                    />
+                                </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium mb-1">Descripción</label>
                                     <input
@@ -429,7 +441,16 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Unidad</label>
+                                    <label className="block text-sm font-medium mb-1">Clave Unidad (SAT)</label>
+                                    <CatalogSelect
+                                        catalog="units"
+                                        value={item.claveUnidad || ""}
+                                        onChange={(value) => handleFieldChange(`mercancias.${index}.claveUnidad`, value)}
+                                        placeholder="Seleccionar unidad"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Unidad (descripción)</label>
                                     <input
                                         type="text"
                                         value={item.unidad}
