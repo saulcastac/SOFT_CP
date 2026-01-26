@@ -83,7 +83,42 @@ const TRAILER_SUBTYPES = [
     { value: "CTR028", name: "Tanque" },
     { value: "CTR029", name: "Tolva" },
     { value: "CTR031", name: "Volteo" },
-    { value: "CTR032", name: "Volteo Desmontable" },
+    { value: "CTR032", descripcion: "Volteo Desmontable" },
+];
+
+const MEXICAN_STATES = [
+    { value: "AGS", name: "Aguascalientes" },
+    { value: "BC", name: "Baja California" },
+    { value: "BCS", name: "Baja California Sur" },
+    { value: "CAM", name: "Campeche" },
+    { value: "CHIS", name: "Chiapas" },
+    { value: "CHIH", name: "Chihuahua" },
+    { value: "CDMX", name: "Ciudad de México" },
+    { value: "COAH", name: "Coahuila" },
+    { value: "COL", name: "Colima" },
+    { value: "DGO", name: "Durango" },
+    { value: "GTO", name: "Guanajuato" },
+    { value: "GRO", name: "Guerrero" },
+    { value: "HGO", name: "Hidalgo" },
+    { value: "JAL", name: "Jalisco" },
+    { value: "MEX", name: "Estado de México" },
+    { value: "MICH", name: "Michoacán" },
+    { value: "MOR", name: "Morelos" },
+    { value: "NAY", name: "Nayarit" },
+    { value: "NL", name: "Nuevo León" },
+    { value: "OAX", name: "Oaxaca" },
+    { value: "PUE", name: "Puebla" },
+    { value: "QRO", name: "Querétaro" },
+    { value: "QROO", name: "Quintana Roo" },
+    { value: "SLP", name: "San Luis Potosí" },
+    { value: "SIN", name: "Sinaloa" },
+    { value: "SON", name: "Sonora" },
+    { value: "TAB", name: "Tabasco" },
+    { value: "TAMPS", name: "Tamaulipas" },
+    { value: "TLAX", name: "Tlaxcala" },
+    { value: "VER", name: "Veracruz" },
+    { value: "YUC", name: "Yucatán" },
+    { value: "ZAC", name: "Zacatecas" },
 ];
 
 export async function GET(
@@ -102,7 +137,8 @@ export async function GET(
 
         // Specific handling for complex catalogs
         if (name === "states") {
-            data = await facturamaService.getCatalog("States?country=MEX");
+            // Static catalog for Mexican States
+            return NextResponse.json(MEXICAN_STATES);
         }
         else if (name === "vehiculos") {
             // Static catalog for Vehicle Configuration
