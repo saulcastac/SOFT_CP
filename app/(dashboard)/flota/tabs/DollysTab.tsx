@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Edit2, Trash2, Plus } from "lucide-react";
+import CatalogSelect from "@/components/CatalogSelect";
 
 type Dolly = {
     id: string;
@@ -247,25 +248,21 @@ export default function DollysTab() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-2 text-muted-foreground">Configuración vehicular</label>
-                                    <select
+                                    <CatalogSelect
+                                        catalog="vehiculos"
                                         value={formData.configuracionVehicular}
-                                        onChange={(e) => setFormData({ ...formData, configuracionVehicular: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                    >
-                                        <option value="">Selecciona una opción</option>
-                                        {/* Add more options as needed */}
-                                    </select>
+                                        onChange={(value) => setFormData({ ...formData, configuracionVehicular: value })}
+                                        placeholder="Selecciona una opción"
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-2 text-muted-foreground">Subtipo de remolque</label>
-                                    <select
+                                    <CatalogSelect
+                                        catalog="remolques"
                                         value={formData.subtipoRemolque}
-                                        onChange={(e) => setFormData({ ...formData, subtipoRemolque: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                    >
-                                        <option value="">Selecciona una opción</option>
-                                        {/* Add more options as needed */}
-                                    </select>
+                                        onChange={(value) => setFormData({ ...formData, subtipoRemolque: value })}
+                                        placeholder="Selecciona una opción"
+                                    />
                                 </div>
 
                                 {/* Row 5 */}
