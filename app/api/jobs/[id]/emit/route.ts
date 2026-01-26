@@ -28,7 +28,7 @@ function transformToCFDI(extractedData: ExtractedData) {
         // Conceptos (Servicio de transporte)
         Items: [
             {
-                ProductCode: "78101800", // Servicios de transporte de carga por carretera
+                ProductCode: "78101802", // Servicios transporte de carga por carretera (en camión) a nivel regional y nacional
                 IdentificationNumber: "001",
                 Description: "Servicio de transporte de mercancías",
                 Unit: "E48", // Unidad de servicio
