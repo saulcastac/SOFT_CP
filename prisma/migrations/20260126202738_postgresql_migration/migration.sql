@@ -1,27 +1,29 @@
 -- CreateTable
 CREATE TABLE "Job" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "owner" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "storagePath" TEXT,
     "fileType" TEXT,
     "extractedJson" TEXT,
     "facturamaId" TEXT,
-    "uuid" TEXT
+    "uuid" TEXT,
+
+    CONSTRAINT "Job_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Tractocamion" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "customId" TEXT NOT NULL,
     "marca" TEXT NOT NULL,
     "subMarca" TEXT,
     "modelo" TEXT NOT NULL,
     "placa" TEXT NOT NULL,
-    "kilometrajeInicial" REAL,
-    "pesoBrutoVehicular" REAL NOT NULL,
+    "kilometrajeInicial" DOUBLE PRECISION,
+    "pesoBrutoVehicular" DOUBLE PRECISION NOT NULL,
     "color" TEXT,
     "vin" TEXT,
     "ejesTraseros" INTEGER,
@@ -29,21 +31,23 @@ CREATE TABLE "Tractocamion" (
     "subtipoRemolque" TEXT,
     "aseguradora" TEXT,
     "numeroPoliza" TEXT,
-    "vigenciaPoliza" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "userId" TEXT NOT NULL DEFAULT 'user_default'
+    "vigenciaPoliza" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL DEFAULT 'user_default',
+
+    CONSTRAINT "Tractocamion_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Plataforma" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "customId" TEXT NOT NULL,
     "marca" TEXT NOT NULL,
     "subMarca" TEXT,
     "modelo" TEXT NOT NULL,
     "placa" TEXT NOT NULL,
-    "pesoBrutoVehicular" REAL NOT NULL,
+    "pesoBrutoVehicular" DOUBLE PRECISION NOT NULL,
     "color" TEXT,
     "vin" TEXT,
     "ejesTraseros" INTEGER,
@@ -51,20 +55,22 @@ CREATE TABLE "Plataforma" (
     "subtipoRemolque" TEXT,
     "aseguradora" TEXT,
     "numeroPoliza" TEXT,
-    "vigenciaPoliza" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "userId" TEXT NOT NULL DEFAULT 'user_default'
+    "vigenciaPoliza" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL DEFAULT 'user_default',
+
+    CONSTRAINT "Plataforma_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Dolly" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "customId" TEXT NOT NULL,
     "marca" TEXT NOT NULL,
     "subMarca" TEXT,
     "modelo" TEXT NOT NULL,
-    "pesoBrutoVehicular" REAL NOT NULL,
+    "pesoBrutoVehicular" DOUBLE PRECISION NOT NULL,
     "color" TEXT,
     "vin" TEXT,
     "ejes" INTEGER,
@@ -72,15 +78,17 @@ CREATE TABLE "Dolly" (
     "subtipoRemolque" TEXT,
     "aseguradora" TEXT,
     "numeroPoliza" TEXT,
-    "vigenciaPoliza" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "userId" TEXT NOT NULL DEFAULT 'user_default'
+    "vigenciaPoliza" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL DEFAULT 'user_default',
+
+    CONSTRAINT "Dolly_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Operador" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "customId" TEXT NOT NULL,
     "nombre" TEXT NOT NULL,
     "apellidoPaterno" TEXT NOT NULL,
@@ -90,14 +98,16 @@ CREATE TABLE "Operador" (
     "telefono" TEXT,
     "email" TEXT,
     "activo" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "userId" TEXT NOT NULL DEFAULT 'user_default'
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL DEFAULT 'user_default',
+
+    CONSTRAINT "Operador_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Emisor" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "rfc" TEXT NOT NULL,
     "nombre" TEXT NOT NULL,
     "regimenFiscal" TEXT NOT NULL,
@@ -109,19 +119,23 @@ CREATE TABLE "Emisor" (
     "municipio" TEXT,
     "estado" TEXT,
     "pais" TEXT NOT NULL DEFAULT 'MEX',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "userId" TEXT NOT NULL DEFAULT 'user_default'
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL DEFAULT 'user_default',
+
+    CONSTRAINT "Emisor_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "RegimenFiscal" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "clave" TEXT NOT NULL,
     "descripcion" TEXT NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "RegimenFiscal_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
