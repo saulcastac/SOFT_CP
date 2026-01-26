@@ -19,7 +19,7 @@ export async function GET(
                 return NextResponse.json({ error: "PDF not found" }, { status: 404 });
             }
 
-            return new NextResponse(pdfBuffer, {
+            return new NextResponse(new Uint8Array(pdfBuffer), {
                 headers: {
                     "Content-Type": "application/pdf",
                     "Content-Disposition": `attachment; filename="CFDI_${id}.pdf"`,
