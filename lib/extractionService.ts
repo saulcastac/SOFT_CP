@@ -122,10 +122,44 @@ REGLAS IMPORTANTES:
 - Para códigos postales, busca números de 5 dígitos
 - Si encuentras datos parciales o incompletos, extráelos de todas formas y asigna un confidence bajo
 
-CLASIFICACIÓN DE MERCANCÍAS (IMPORTANTE):
-- Intenta inferir la 'claveProdServ' (Clave SAT de BienesTransp) basándote en la descripción de la mercancía. Usa tu conocimiento del catálogo c_ClaveProdServCP del SAT y CFDI. Si tienes alta confianza (0.9+), asígnala. Si no, déjala vacía.
-- Intenta inferir 'claveUnidad' (Clave SAT H87, KGM, etc.) basándote en la unidad descrita.
-- Detecta si es 'materialPeligroso' (Sí/No) por la naturaleza de la carga.
+CLASIFICACIÓN DE MERCANCÍAS (MUY IMPORTANTE):
+Esta sección es CRÍTICA para Carta Porte. Debes extraer y clasificar cada mercancía con sus claves SAT.
+
+**Clave Producto/Servicio (claveProdServ - campo BienesTransp en Carta Porte)**
+- Solo asigna si tienes ALTA CONFIANZA (90%+) basándote en el catálogo c_ClaveProdServCP del SAT
+- Si no estás seguro, déjala VACÍA ("") para que el usuario la asigne
+
+EJEMPLOS COMUNES en transporte mexicano:
+• Cemento Portland gris → "14111509"
+• Acero en barras/varillas → "30161701"
+• Cintas adhesivas/etiquetas → "55121611"
+• Productos alimenticios procesados → "50000000"
+• Materiales de construcción (genérico) → "30100000"
+• Fertilizantes → "10121500"
+• Productos químicos → "11000000"
+• Papel y cartón → "14110000"
+• Plásticos y derivados → "11160000"
+• Madera y productos de madera → "30100000"
+
+**Clave Unidad (claveUnidad)**
+- Extrae la unidad de medida y asigna su clave SAT del catálogo c_ClaveUnidad
+- SIEMPRE debe tener una clave válida
+
+EJEMPLOS de unidades SAT:
+• Kilogramo / kg → "KGM"
+• Tonelada / ton → "TNE"
+• Metro cúbico / m³ → "MTQ"
+• Metro cuadrado / m² → "MTK"
+• Litro / lt → "LTR"
+• Pieza / pza → "H87"
+• Caja / caja → "XBX"
+• Palet / tarima → "XPK"
+• Metro / m → "MTR"
+• Mililitro / ml → "MLT"
+
+**Material Peligroso**
+- Detecta si por la naturaleza de la carga es material peligroso (químicos, combustibles, gases, etc.)
+- Si es "Sí", intenta identificar la clave de material peligroso de la NOM-002-SCT/2011
 
 Estructura JSON requerida (Carta Porte 3.1):
 {

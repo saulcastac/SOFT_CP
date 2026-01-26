@@ -1,17 +1,90 @@
 import { NextRequest, NextResponse } from "next/server";
 import { facturamaService } from "@/lib/facturamaService";
+import { prisma } from "@/lib/prisma";
 
 // Map frontend catalog names to Facturama API catalog names
 const CATALOG_MAP: Record<string, string> = {
     products: "ProductsOrServices", // Or "CartaPorte/ClaveProdServCP" if available
     units: "Units",
-    regimes: "FiscalRegimes",
+    // regimes - now handled from local DB
     states: "States",
     countries: "Countries",
     municipalities: "Municipalities", // Needs state
     localities: "Localities",
     neighborhoods: "Neighborhoods",
 };
+
+// Static Catalogs
+const VEHICLE_CONFIGS = [
+    { value: "VL", name: "Vehículo ligero de carga (2 llantas en el eje delantero y 2 llantas en el eje trasero)" },
+    { value: "C2", name: "Camión Unitario (2 llantas en el eje delantero y 4 llantas en el eje trasero)" },
+    { value: "C3", name: "Camión Unitario (2 llantas en el eje delantero y 6 o 8 llantas en los dos ejes traseros)" },
+    { value: "C2R2", name: "Camión-Remolque (6 llantas en el camión y 8 llantas en remolque)" },
+    { value: "C3R2", name: "Camión-Remolque (10 llantas en el camión y 8 llantas en remolque)" },
+    { value: "C2R3", name: "Camión-Remolque (6 llantas en el camión y 12 llantas en remolque)" },
+    { value: "C3R3", name: "Camión-Remolque (10 llantas en el camión y 12 llantas en remolque)" },
+    { value: "T2S1", name: "Tractocamión Articulado (6 llantas en el tractocamión, 4 llantas en el semirremolque)" },
+    { value: "T2S2", name: "Tractocamión Articulado (6 llantas en el tractocamión, 8 llantas en el semirremolque)" },
+    { value: "T2S3", name: "Tractocamión Articulado (6 llantas en el tractocamión, 12 llantas en el semirremolque)" },
+    { value: "T3S1", name: "Tractocamión Articulado (10 llantas en el tractocamión, 4 llantas en el semirremolque)" },
+    { value: "T3S2", name: "Tractocamión Articulado (10 llantas en el tractocamión, 8 llantas en el semirremolque)" },
+    { value: "T3S3", name: "Tractocamión Articulado (10 llantas en el tractocamión, 12 llantas en el semirremolque)" },
+    { value: "T2S1R2", name: "Tractocamión Semirremolque-Remolque (6 llantas en el tractocamión, 4 llantas en el semirremolque y 8 llantas en el remolque)" },
+    { value: "T2S2R2", name: "Tractocamión Semirremolque-Remolque (6 llantas en el tractocamión, 8 llantas en el semirremolque y 8 llantas en el remolque)" },
+    { value: "T2S1R3", name: "Tractocamión Semirremolque-Remolque (6 llantas en el tractocamión, 4 llantas en el semirremolque y 12 llantas en el remolque)" },
+    { value: "T3S1R2", name: "Tractocamión Semirremolque-Remolque (10 llantas en el tractocamión, 4 llantas en el semirremolque y 8 llantas en el remolque)" },
+    { value: "T3S1R3", name: "Tractocamión Semirremolque-Remolque (10 llantas en el tractocamión, 4 llantas en el semirremolque y 12 llantas en el remolque)" },
+    { value: "T3S2R2", name: "Tractocamión Semirremolque-Remolque (10 llantas en el tractocamión, 8 llantas en el semirremolque y 8 llantas en el remolque)" },
+    { value: "T3S2R3", name: "Tractocamión Semirremolque-Remolque (10 llantas en el tractocamión, 8 llantas en el semirremolque y 12 llantas en el remolque)" },
+    { value: "T3S2R4", name: "Tractocamión Semirremolque-Remolque (10 llantas en el tractocamión, 8 llantas en el semirremolque y 16 llantas en el remolque)" },
+    { value: "T2S2S2", name: "Tractocamión Semirremolque-Semirremolque (6 llantas en el tractocamión, 8 llantas en el semirremolque delantero y 8 llantas en el semirremolque trasero)" },
+    { value: "T3S2S2", name: "Tractocamión Semirremolque-Semirremolque (10 llantas en el tractocamión, 8 llantas en el semirremolque delantero y 8 llantas en el semirremolque trasero)" },
+    { value: "T3S3S2", name: "Tractocamión Semirremolque-Semirremolque (10 llantas en el tractocamión, 12 llantas en el semirremolque delantero y 8 llantas en el semirremolque trasero)" },
+    { value: "OTROEVGP", name: "Especializado de carga Voluminosa y/o Gran Peso" },
+    { value: "OTROSG", name: "Servicio de Grúas" },
+    { value: "GPLUTA", name: "Grúa de Pluma Tipo A" },
+    { value: "GPLUTB", name: "Grúa de Pluma Tipo B" },
+    { value: "GPLUTC", name: "Grúa de Pluma Tipo C" },
+    { value: "GPLUTD", name: "Grúa de Pluma Tipo D" },
+    { value: "GPLATA", name: "Grúa de Plataforma Tipo A" },
+    { value: "GPLATB", name: "Grúa de Plataforma Tipo B" },
+    { value: "GPLATC", name: "Grúa de Plataforma Tipo C" },
+    { value: "GPLATD", name: "Grúa de Plataforma Tipo D" },
+];
+
+const TRAILER_SUBTYPES = [
+    { value: "CTR001", name: "Caballete" },
+    { value: "CTR002", name: "Caja" },
+    { value: "CTR003", name: "Caja Abierta" },
+    { value: "CTR004", name: "Caja Cerrada" },
+    { value: "CTR005", name: "Caja De Recolección Con Cargador Frontal" },
+    { value: "CTR006", name: "Caja Refrigerada" },
+    { value: "CTR007", name: "Caja Seca" },
+    { value: "CTR008", name: "Caja Transferencia" },
+    { value: "CTR009", name: "Cama Baja o Cuello Ganso" },
+    { value: "CTR010", name: "Chasis Portacontenedor" },
+    { value: "CTR011", name: "Convencional De Chasis" },
+    { value: "CTR012", name: "Equipo Especial" },
+    { value: "CTR013", name: "Estacas" },
+    { value: "CTR014", name: "Góndola Madrina" },
+    { value: "CTR015", name: "Grúa Industrial" },
+    { value: "CTR016", name: "Grúa" },
+    { value: "CTR017", name: "Integral" },
+    { value: "CTR018", name: "Jaula" },
+    { value: "CTR019", name: "Media Redila" },
+    { value: "CTR020", name: "Pallet o Celdillas" },
+    { value: "CTR021", name: "Plataforma" },
+    { value: "CTR022", name: "Plataforma Con Grúa" },
+    { value: "CTR023", name: "Plataforma Encortinada" },
+    { value: "CTR024", name: "Redilas" },
+    { value: "CTR025", name: "Refrigerador" },
+    { value: "CTR026", name: "Revolvedora" },
+    { value: "CTR027", name: "Semicaja" },
+    { value: "CTR028", name: "Tanque" },
+    { value: "CTR029", name: "Tolva" },
+    { value: "CTR031", name: "Volteo" },
+    { value: "CTR032", name: "Volteo Desmontable" },
+];
 
 export async function GET(
     req: NextRequest,
@@ -29,17 +102,28 @@ export async function GET(
 
         // Specific handling for complex catalogs
         if (name === "states") {
-            // States usually requires a country. Default to Mexico if not specified
-            // Note: facturamaService.getCatalog takes a single string name. 
-            // If the API expects query params, we might need to modify the service or append them here if the service allows.
-            // Assuming facturamaService handles standard catalogs. 
-            // If we need query params, we might need to handle it.
-            // Facturama API: GET /catalogs/States?country=MEX
-            // But strict url encoding in service might prevent "States?country=MEX"
-            // Let's assume for now default is used or we can't easily pass it without changing service.
-            // However, "States" usually returns all or requires country.
-            // Let's try passing "States?country=MEX" to the service if it just appends it.
             data = await facturamaService.getCatalog("States?country=MEX");
+        }
+        else if (name === "vehiculos") {
+            // Static catalog for Vehicle Configuration
+            return NextResponse.json(VEHICLE_CONFIGS);
+        }
+        else if (name === "remolques") {
+            // Static catalog for Trailer Subtype
+            return NextResponse.json(TRAILER_SUBTYPES);
+        }
+        else if (name === "regimes") {
+            // Fetch from local database
+            const regimenes = await prisma.regimenFiscal.findMany({
+                where: { activo: true },
+                orderBy: { clave: 'asc' }
+            });
+            const transformedRegimes = regimenes.map(r => ({
+                value: r.clave,
+                name: r.descripcion,
+                description: r.descripcion
+            }));
+            return NextResponse.json(transformedRegimes);
         }
         else if (name === "products" && keyword) {
             // Search products

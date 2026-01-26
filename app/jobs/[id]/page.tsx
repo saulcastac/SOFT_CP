@@ -2,7 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+    FileText,
+    MapPin,
+    Package,
+    Truck,
+    User,
+    ArrowLeft,
+    CheckCircle,
+    Rocket,
+    AlertCircle,
+    Save
+} from "lucide-react";
 import CatalogSelect from "@/components/CatalogSelect";
+import FleetSelect from "@/components/FleetSelect";
 
 // Type definitions (duplicated from server to avoid import issues)
 type ExtractedData = {
@@ -128,6 +141,28 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
         setExtractedData(newData);
     };
 
+    const handleTractocamionSelect = (item: any) => {
+        if (!extractedData) return;
+        const newData = { ...extractedData };
+        // Populate fields from Tractocamion
+        newData.autotransporte.placaVehiculo = item.placa;
+        newData.autotransporte.modeloAnio = parseInt(item.modelo) || new Date().getFullYear();
+        newData.autotransporte.aseguradora = item.aseguradora || "";
+        newData.autotransporte.numPolizaSeguro = item.numeroPoliza || "";
+        newData.autotransporte.configVehicular = item.configuracionVehicular || "";
+        // You might also want to set permSCT if available in catalog
+        setExtractedData(newData);
+    };
+
+    const handleOperadorSelect = (item: any) => {
+        if (!extractedData) return;
+        const newData = { ...extractedData };
+        newData.operador.nombre = `${item.nombre} ${item.apellidoPaterno} ${item.apellidoMaterno || ""}`.trim();
+        newData.operador.rfc = item.rfc || "";
+        newData.operador.licencia = item.licencia || "";
+        setExtractedData(newData);
+    };
+
     const handleMarkReady = async () => {
         if (!unwrappedParams || !extractedData) return;
 
@@ -222,18 +257,28 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
         );
     }
 
-    const getConfidenceColor = (confidence: number) => {
-        const level = getConfidenceLevel(confidence);
-        if (level === "high") return "text-green-500";
-        if (level === "medium") return "text-yellow-500";
-        return "text-red-500";
-    };
+    const ConfidenceIndicator = ({ score }: { score: number }) => {
+        const level = getConfidenceLevel(score);
 
-    const getConfidenceIcon = (confidence: number) => {
-        const level = getConfidenceLevel(confidence);
-        if (level === "high") return "🟢";
-        if (level === "medium") return "🟡";
-        return "🔴";
+        if (level === "high") {
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    High
+                </span>
+            );
+        }
+        if (level === "medium") {
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                    Medium
+                </span>
+            );
+        }
+        return (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                Low
+            </span>
+        );
     };
 
     return (
@@ -241,14 +286,14 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
             <header className="mb-8">
                 <button
                     onClick={() => router.push("/")}
-                    className="text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors group"
                 >
-                    ← Volver al Dashboard
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Volver al Dashboard
                 </button>
-                <div className="flex justify-between items-start gap-4">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Revisar Datos Extraídos</h1>
-                        <p className="text-muted-foreground">
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">Revisar Datos Extraídos</h1>
+                        <p className="text-muted-foreground mt-1">
                             {job.status === "NEEDS_REVIEW" && "Verifica y edita los datos antes de marcarlos como listos"}
                             {job.status === "READY" && "Datos verificados - Listo para timbrar"}
                             {job.status === "ISSUED" && "CFDI Timbrado exitosamente"}
@@ -260,8 +305,9 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                             <button
                                 onClick={handleMarkReady}
                                 disabled={saving}
-                                className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
+                                className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-all font-medium disabled:opacity-50 shadow-sm"
                             >
+                                <Save className="w-4 h-4" />
                                 {saving ? "Guardando..." : "Marcar como LISTO"}
                             </button>
                         )}
@@ -269,14 +315,20 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                             <button
                                 onClick={handleEmit}
                                 disabled={emitting}
-                                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
+                                className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2.5 rounded-lg hover:bg-emerald-700 transition-all font-medium disabled:opacity-50 shadow-sm"
                             >
-                                {emitting ? "Timbrando..." : "🚀 Timbrar CFDI"}
+                                {emitting ? (
+                                    <span className="flex items-center gap-2">Timbrando...</span>
+                                ) : (
+                                    <>
+                                        <Rocket className="w-4 h-4" /> Timbrar CFDI
+                                    </>
+                                )}
                             </button>
                         )}
                         {job.status === "ISSUED" && (
-                            <div className="px-6 py-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg font-medium">
-                                ✅ Timbrado - UUID: {job.uuid || "N/A"}
+                            <div className="px-6 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg font-medium flex items-center gap-2">
+                                <CheckCircle className="w-5 h-5" /> Timbrado - UUID: {job.uuid || "N/A"}
                             </div>
                         )}
                     </div>
@@ -285,24 +337,29 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
 
             <main className="space-y-6 max-w-6xl">
                 {/* 1. CFDI / Receptor */}
-                <section className="rounded-xl border bg-card p-6 shadow-sm">
-                    <h2 className="text-xl font-bold mb-4">📋 Datos del Receptor (Cliente)</h2>
+                <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <h2 className="flex items-center gap-2 text-xl font-bold mb-6 pb-2 border-b border-border">
+                        <FileText className="w-5 h-5 text-primary" />
+                        Datos del Receptor (Cliente)
+                    </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">
-                                RFC {getConfidenceIcon(extractedData.confidence["receptor.rfc"] || 0)}
-                            </label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-medium">RFC</label>
+                                <ConfidenceIndicator score={extractedData.confidence["receptor.rfc"] || 0} />
+                            </div>
                             <input
                                 type="text"
                                 value={extractedData.receptor.rfc}
                                 onChange={(e) => handleFieldChange("receptor.rfc", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">
-                                Nombre / Razón Social {getConfidenceIcon(extractedData.confidence["receptor.nombre"] || 0)}
-                            </label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-medium">Nombre / Razón Social</label>
+                                <ConfidenceIndicator score={extractedData.confidence["receptor.nombre"] || 0} />
+                            </div>
                             <input
                                 type="text"
                                 value={extractedData.receptor.nombre}
@@ -336,11 +393,17 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                 </section>
 
                 {/* 2. Ubicaciones (Origen / Destino) */}
-                <section className="rounded-xl border bg-card p-6 shadow-sm">
-                    <h2 className="text-xl font-bold mb-4">📍 Ubicaciones (Origen → Destino)</h2>
+                <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <h2 className="flex items-center gap-2 text-xl font-bold mb-6 pb-2 border-b border-border">
+                        <MapPin className="w-5 h-5 text-primary" />
+                        Ubicaciones (Origen → Destino)
+                    </h2>
 
                     <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-3">Origen {getConfidenceIcon(extractedData.confidence["ubicaciones.origen"] || 0)}</h3>
+                        <div className="flex items-center gap-2 mb-3">
+                            <h3 className="text-lg font-semibold">Origen</h3>
+                            <ConfidenceIndicator score={extractedData.confidence["ubicaciones.origen"] || 0} />
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Nombre</label>
@@ -348,7 +411,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                     type="text"
                                     value={extractedData.ubicaciones.origen.nombre}
                                     onChange={(e) => handleFieldChange("ubicaciones.origen.nombre", e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                                 />
                             </div>
                             <div>
@@ -357,7 +420,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                     type="text"
                                     value={extractedData.ubicaciones.origen.rfc || ""}
                                     onChange={(e) => handleFieldChange("ubicaciones.origen.rfc", e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                                 />
                             </div>
                             <div>
@@ -366,7 +429,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                     type="text"
                                     value={extractedData.ubicaciones.origen.codigoPostal}
                                     onChange={(e) => handleFieldChange("ubicaciones.origen.codigoPostal", e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                                 />
                             </div>
                             <div>
@@ -382,7 +445,10 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                     </div>
 
                     <div>
-                        <h3 className="text-lg font-semibold mb-3">Destino {getConfidenceIcon(extractedData.confidence["ubicaciones.destino"] || 0)}</h3>
+                        <div className="flex items-center gap-2 mb-3">
+                            <h3 className="text-lg font-semibold">Destino</h3>
+                            <ConfidenceIndicator score={extractedData.confidence["ubicaciones.destino"] || 0} />
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Nombre</label>
@@ -416,13 +482,24 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                 </section>
 
                 {/* 3. Mercancías */}
-                <section className="rounded-xl border bg-card p-6 shadow-sm">
-                    <h2 className="text-xl font-bold mb-4">📦 Mercancías {getConfidenceIcon(extractedData.confidence["mercancias"] || 0)}</h2>
+                <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <h2 className="flex items-center gap-2 text-xl font-bold mb-6 pb-2 border-b border-border">
+                        <Package className="w-5 h-5 text-primary" />
+                        Mercancías
+                        <ConfidenceIndicator score={extractedData.confidence["mercancias"] || 0} />
+                    </h2>
                     {extractedData.mercancias.map((item, index) => (
-                        <div key={index} className="mb-4 p-4 border rounded-lg">
+                        <div key={index} className="mb-4 p-4 border border-border rounded-lg bg-background/50">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="md:col-span-3">
-                                    <label className="block text-sm font-medium mb-1">Clave Producto/Servicio (SAT)</label>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="block text-sm font-medium">Clave Producto/Servicio (SAT)</label>
+                                        {!item.claveProdServ && (
+                                            <span className="text-xs px-2 py-0.5 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-full font-medium">
+                                                ⚠️ Requiere selección
+                                            </span>
+                                        )}
+                                    </div>
                                     <CatalogSelect
                                         catalog="products"
                                         value={item.claveProdServ || ""}
@@ -449,7 +526,14 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Clave Unidad (SAT)</label>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="block text-sm font-medium">Clave Unidad (SAT)</label>
+                                        {!item.claveUnidad && (
+                                            <span className="text-xs px-2 py-0.5 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-full font-medium">
+                                                ⚠️ Requerido
+                                            </span>
+                                        )}
+                                    </div>
                                     <CatalogSelect
                                         catalog="units"
                                         value={item.claveUnidad || ""}
@@ -476,6 +560,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                     />
                                 </div>
                                 <div>
+                                    <label className="block text-sm font-medium mb-1">Valor Mercancía</label>
                                     <input
                                         type="number"
                                         value={item.valorMercancia}
@@ -533,8 +618,21 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                 </section>
 
                 {/* 4. Autotransporte */}
-                <section className="rounded-xl border bg-card p-6 shadow-sm">
-                    <h2 className="text-xl font-bold mb-4">🚛 Autotransporte {getConfidenceIcon(extractedData.confidence["autotransporte"] || 0)}</h2>
+                <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-2 border-b border-border">
+                        <h2 className="flex items-center gap-2 text-xl font-bold">
+                            <Truck className="w-5 h-5 text-primary" />
+                            Autotransporte
+                            <ConfidenceIndicator score={extractedData.confidence["autotransporte"] || 0} />
+                        </h2>
+                        <div className="w-full md:w-1/3">
+                            <FleetSelect
+                                type="tractocamiones"
+                                onSelect={handleTractocamionSelect}
+                                placeholder="Seleccionar del catálogo..."
+                            />
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Placa Vehículo</label>
@@ -542,7 +640,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={extractedData.autotransporte.placaVehiculo}
                                 onChange={(e) => handleFieldChange("autotransporte.placaVehiculo", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                         <div>
@@ -551,7 +649,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="number"
                                 value={extractedData.autotransporte.modeloAnio}
                                 onChange={(e) => handleFieldChange("autotransporte.modeloAnio", Number(e.target.value))}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                         <div>
@@ -560,7 +658,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={extractedData.autotransporte.aseguradora || ""}
                                 onChange={(e) => handleFieldChange("autotransporte.aseguradora", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                         <div>
@@ -569,7 +667,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={extractedData.autotransporte.numPolizaSeguro || ""}
                                 onChange={(e) => handleFieldChange("autotransporte.numPolizaSeguro", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                         <div>
@@ -578,7 +676,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={extractedData.autotransporte.permSCT || ""}
                                 onChange={(e) => handleFieldChange("autotransporte.permSCT", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                                 placeholder="Ej: TPAF01"
                             />
                         </div>
@@ -588,25 +686,37 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={extractedData.autotransporte.numPermisoSCT || ""}
                                 onChange={(e) => handleFieldChange("autotransporte.numPermisoSCT", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Config Vehicular</label>
-                            <input
-                                type="text"
+                            <CatalogSelect
+                                catalog="vehiculos"
                                 value={extractedData.autotransporte.configVehicular || ""}
-                                onChange={(e) => handleFieldChange("autotransporte.configVehicular", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
-                                placeholder="Ej: VL"
+                                onChange={(value) => handleFieldChange("autotransporte.configVehicular", value)}
+                                placeholder="Seleccionar configuración"
                             />
                         </div>
                     </div>
                 </section>
 
                 {/* 5. Operador */}
-                <section className="rounded-xl border bg-card p-6 shadow-sm">
-                    <h2 className="text-xl font-bold mb-4">👤 Operador {getConfidenceIcon(extractedData.confidence["operador"] || 0)}</h2>
+                <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-2 border-b border-border">
+                        <h2 className="flex items-center gap-2 text-xl font-bold">
+                            <User className="w-5 h-5 text-primary" />
+                            Operador
+                            <ConfidenceIndicator score={extractedData.confidence["operador"] || 0} />
+                        </h2>
+                        <div className="w-full md:w-1/3">
+                            <FleetSelect
+                                type="operadores"
+                                onSelect={handleOperadorSelect}
+                                placeholder="Seleccionar del catálogo..."
+                            />
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Nombre</label>
@@ -614,7 +724,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={extractedData.operador.nombre}
                                 onChange={(e) => handleFieldChange("operador.nombre", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                         <div>
@@ -623,7 +733,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={extractedData.operador.rfc}
                                 onChange={(e) => handleFieldChange("operador.rfc", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                         <div>
@@ -632,7 +742,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={extractedData.operador.licencia}
                                 onChange={(e) => handleFieldChange("operador.licencia", e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border bg-background"
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                             />
                         </div>
                     </div>

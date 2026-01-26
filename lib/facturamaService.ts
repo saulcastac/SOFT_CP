@@ -29,7 +29,7 @@ export class FacturamaService {
         this.config = {
             username: config?.username || process.env.FACTURAMA_USERNAME || "",
             password: config?.password || process.env.FACTURAMA_PASSWORD || "",
-            sandbox: config?.sandbox ?? true,
+            sandbox: config?.sandbox ?? false,
         };
 
         this.baseUrl = this.config.sandbox
@@ -152,17 +152,43 @@ export class FacturamaService {
      */
     async getCatalog(catalogName: string): Promise<any[]> {
         try {
-            const response = await fetch(`${this.baseUrl}/api-lite/catalogs/${catalogName}`, {
+            const url = `${this.baseUrl}/api-lite/catalogs/${catalogName}`;
+            console.log(`[Facturama] Fetching catalog: ${url}`);
+            console.log(`[Facturama] Using credentials: ${this.config.username} (sandbox: ${this.config.sandbox})`);
+
+            const response = await fetch(url, {
                 headers: {
                     Authorization: this.getAuthHeader(),
                 },
             });
 
-            if (!response.ok) return [];
+            console.log(`[Facturama] Response status: ${response.status} ${response.statusText}`);
 
-            return await response.json();
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`[Facturama] Error response body:`, errorText);
+                return [];
+            }
+
+            const text = await response.text();
+            console.log(`[Facturama] Response body (first 200 chars):`, text.substring(0, 200));
+
+            if (!text || text.trim() === '') {
+                console.error(`[Facturama] Empty response body`);
+                return [];
+            }
+
+            try {
+                const data = JSON.parse(text);
+                console.log(`[Facturama] Parsed ${data.length || 0} items`);
+                return data;
+            } catch (parseError) {
+                console.error(`[Facturama] JSON parse error:`, parseError);
+                console.error(`[Facturama] Response was:`, text);
+                return [];
+            }
         } catch (error) {
-            console.error("Catalog fetch error:", error);
+            console.error("[Facturama] Catalog fetch error:", error);
             return [];
         }
     }
