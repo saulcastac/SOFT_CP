@@ -254,6 +254,15 @@ export default function TractocamionesTab() {
                                         placeholder="Seleccionar configuración"
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">Subtipo de remolque</label>
+                                    <CatalogSelect
+                                        catalog="remolques"
+                                        value={formData.subtipoRemolque}
+                                        onChange={(value) => setFormData({ ...formData, subtipoRemolque: value })}
+                                        placeholder="Seleccionar subtipo"
+                                    />
+                                </div>
                             </div>
                             <div className="mt-6 flex gap-3 justify-end">
                                 <button type="button" onClick={() => { setShowModal(false); setEditingId(null); }} className="px-6 py-2 rounded-lg border hover:bg-muted">Cancelar</button>
