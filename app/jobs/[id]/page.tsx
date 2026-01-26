@@ -302,14 +302,45 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                     </div>
                     <div className="flex gap-2">
                         {job.status === "NEEDS_REVIEW" && (
-                            <button
-                                onClick={handleMarkReady}
-                                disabled={saving}
-                                className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-all font-medium disabled:opacity-50 shadow-sm"
-                            >
-                                <Save className="w-4 h-4" />
-                                {saving ? "Guardando..." : "Marcar como LISTO"}
-                            </button>
+                            <>
+                                <button
+                                    onClick={handleMarkReady}
+                                    disabled={saving}
+                                    className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-all font-medium disabled:opacity-50 shadow-sm"
+                                >
+                                    <Save className="w-4 h-4" />
+                                    {saving ? "Guardando..." : "Marcar como LISTO"}
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        // First mark as ready, then emit
+                                        if (!unwrappedParams || !extractedData) return;
+                                        setSaving(true);
+                                        try {
+                                            await fetch(`/api/jobs/${unwrappedParams.id}`, {
+                                                method: "PATCH",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({
+                                                    status: "READY",
+                                                    extractedJson: JSON.stringify(extractedData),
+                                                }),
+                                            });
+                                            setSaving(false);
+                                            // Now emit
+                                            handleEmit();
+                                        } catch (error) {
+                                            console.error("Failed to save:", error);
+                                            alert("Error al guardar");
+                                            setSaving(false);
+                                        }
+                                    }}
+                                    disabled={saving || emitting}
+                                    className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2.5 rounded-lg hover:bg-emerald-700 transition-all font-medium disabled:opacity-50 shadow-sm"
+                                >
+                                    <Rocket className="w-4 h-4" />
+                                    {saving || emitting ? "Procesando..." : "Guardar y Emitir"}
+                                </button>
+                            </>
                         )}
                         {job.status === "READY" && (
                             <button
