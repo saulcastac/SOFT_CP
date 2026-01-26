@@ -24,6 +24,40 @@ const regimenesFiscales = [
     { clave: "626", descripcion: "Régimen Simplificado de Confianza" },
 ];
 
+const subtiposRemolque = [
+    { clave: "CTR001", descripcion: "Caballete" },
+    { clave: "CTR002", descripcion: "Caja" },
+    { clave: "CTR003", descripcion: "Caja Abierta" },
+    { clave: "CTR004", descripcion: "Caja Cerrada" },
+    { clave: "CTR005", descripcion: "Caja De Recolección Con Cargador Frontal" },
+    { clave: "CTR006", descripcion: "Caja Refrigerada" },
+    { clave: "CTR007", descripcion: "Caja Seca" },
+    { clave: "CTR008", descripcion: "Caja Transferencia" },
+    { clave: "CTR009", descripcion: "Cama Baja o Cuello Ganso" },
+    { clave: "CTR010", descripcion: "Chasis Portacontenedor" },
+    { clave: "CTR011", descripcion: "Convencional De Chasis" },
+    { clave: "CTR012", descripcion: "Equipo Especial" },
+    { clave: "CTR013", descripcion: "Estacas" },
+    { clave: "CTR014", descripcion: "Góndola Madrina" },
+    { clave: "CTR015", descripcion: "Grúa Industrial" },
+    { clave: "CTR016", descripcion: "Grúa" },
+    { clave: "CTR017", descripcion: "Integral" },
+    { clave: "CTR018", descripcion: "Jaula" },
+    { clave: "CTR019", descripcion: "Media Redila" },
+    { clave: "CTR020", descripcion: "Pallet o Celdillas" },
+    { clave: "CTR021", descripcion: "Plataforma" },
+    { clave: "CTR022", descripcion: "Plataforma Con Grúa" },
+    { clave: "CTR023", descripcion: "Plataforma Encortinada" },
+    { clave: "CTR024", descripcion: "Redilas" },
+    { clave: "CTR025", descripcion: "Refrigerador" },
+    { clave: "CTR026", descripcion: "Revolvedora" },
+    { clave: "CTR027", descripcion: "Semicaja" },
+    { clave: "CTR028", descripcion: "Tanque" },
+    { clave: "CTR029", descripcion: "Tolva" },
+    { clave: "CTR031", descripcion: "Volteo" },
+    { clave: "CTR032", descripcion: "Volteo Desmontable" },
+];
+
 async function main() {
     console.log('🌱 Seeding regímenes fiscales...');
 
@@ -36,6 +70,18 @@ async function main() {
     }
 
     console.log('✅ Regímenes fiscales seeded successfully!');
+
+    console.log('🌱 Seeding subtipos de remolque...');
+
+    for (const subtipo of subtiposRemolque) {
+        await prisma.subtipoRemolque.upsert({
+            where: { clave: subtipo.clave },
+            update: { descripcion: subtipo.descripcion },
+            create: subtipo,
+        });
+    }
+
+    console.log('✅ Subtipos de remolque seeded successfully!');
 }
 
 main()

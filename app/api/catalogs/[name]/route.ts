@@ -145,8 +145,18 @@ export async function GET(
             return NextResponse.json(VEHICLE_CONFIGS);
         }
         else if (name === "remolques") {
-            // Static catalog for Trailer Subtype
-            return NextResponse.json(TRAILER_SUBTYPES);
+            // Database catalog for Trailer Subtype
+            const remolques = await prisma.subtipoRemolque.findMany({
+                where: { activo: true },
+                select: {
+                    clave: true,
+                    descripcion: true,
+                },
+                orderBy: { clave: 'asc' },
+            });
+            return NextResponse.json(
+                remolques.map(r => ({ value: r.clave, name: r.descripcion }))
+            );
         }
         else if (name === "regimes") {
             // Fetch from local database

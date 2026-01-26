@@ -175,3 +175,12 @@ model RegimenFiscal {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model SubtipoRemolque {
+  id          String   @id @default(uuid())
+  clave       String   @unique  // SAT code: CTR001, CTR002, etc.
+  descripcion String             // Full description
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
