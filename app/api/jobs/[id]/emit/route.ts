@@ -50,34 +50,50 @@ function transformToCFDI(extractedData: ExtractedData) {
                 // Ubicaciones
                 Locations: [
                     {
+                        IDUbicacion: `OR${extractedData.ubicaciones.origen.codigoPostal}`,
                         TipoUbicacion: "Origen",
-                        RFCRemitenteDestinatario: extractedData.ubicaciones.origen.rfc || "",
+                        RFCRemitenteDestinatario: extractedData.ubicaciones.origen.rfc || "XAXX010101000", // Fallback generic RFC if missing
                         NombreRemitenteDestinatario: extractedData.ubicaciones.origen.nombre,
                         FechaHoraSalidaLlegada: new Date().toISOString(),
                         Domicilio: {
+                            Calle: extractedData.ubicaciones.origen.calle,
+                            NumeroExterior: extractedData.ubicaciones.origen.numeroExterior,
+                            NumeroInterior: extractedData.ubicaciones.origen.numeroInterior,
+                            Colonia: extractedData.ubicaciones.origen.colonia,
+                            Localidad: extractedData.ubicaciones.origen.localidad,
+                            Municipio: extractedData.ubicaciones.origen.municipio,
                             CodigoPostal: extractedData.ubicaciones.origen.codigoPostal,
                             Estado: extractedData.ubicaciones.origen.estado,
                             Pais: "MEX",
                         },
+                        DistanciaRecorrida: extractedData.ubicaciones.origen.distanciaRecorrida || 0,
                     },
                     {
+                        IDUbicacion: `DE${extractedData.ubicaciones.destino.codigoPostal}`,
                         TipoUbicacion: "Destino",
-                        RFCRemitenteDestinatario: "",
+                        RFCRemitenteDestinatario: extractedData.ubicaciones.destino.rfc || "XAXX010101000",
                         NombreRemitenteDestinatario: extractedData.ubicaciones.destino.nombre,
                         FechaHoraSalidaLlegada: new Date(Date.now() + 3600000).toISOString(),
                         Domicilio: {
+                            Calle: extractedData.ubicaciones.destino.calle,
+                            NumeroExterior: extractedData.ubicaciones.destino.numeroExterior,
+                            NumeroInterior: extractedData.ubicaciones.destino.numeroInterior,
+                            Colonia: extractedData.ubicaciones.destino.colonia,
+                            Localidad: extractedData.ubicaciones.destino.localidad,
+                            Municipio: extractedData.ubicaciones.destino.municipio,
                             CodigoPostal: extractedData.ubicaciones.destino.codigoPostal,
                             Estado: extractedData.ubicaciones.destino.estado,
                             Pais: "MEX",
                         },
+                        DistanciaRecorrida: extractedData.ubicaciones.destino.distanciaRecorrida || 0,
                     },
                 ],
 
                 // Mercancías
                 Mercancias: {
-                    PesoBrutoTotal: extractedData.mercancias.reduce((sum, m) => sum + m.pesoKg, 0),
-                    UnidadPeso: "KGM",
-                    NumTotalMercancias: extractedData.mercancias.length,
+                    PesoBrutoTotal: extractedData.mercanciasTotales.pesoBrutoTotal,
+                    UnidadPeso: extractedData.mercanciasTotales.unidadPeso,
+                    NumTotalMercancias: extractedData.mercanciasTotales.numTotalMercancias,
                     Mercancia: extractedData.mercancias.map((m) => {
                         const mercancia: any = {
                             BienesTransp: m.claveProdServ || "01010101",
@@ -89,6 +105,13 @@ function transformToCFDI(extractedData: ExtractedData) {
                             ValorMercancia: m.valorMercancia,
                             Moneda: m.moneda || "MXN",
                             MaterialPeligroso: m.materialPeligroso || "No",
+                            CantidadTransportada: [
+                                {
+                                    Cantidad: m.cantidad,
+                                    IDOrigen: `OR${extractedData.ubicaciones.origen.codigoPostal}`,
+                                    IDDestino: `DE${extractedData.ubicaciones.destino.codigoPostal}`,
+                                }
+                            ]
                         };
 
                         if (m.materialPeligroso === "Sí" && m.cveMaterialPeligroso) {
@@ -115,7 +138,14 @@ function transformToCFDI(extractedData: ExtractedData) {
                         Seguros: {
                             AseguraRespCivil: extractedData.autotransporte.aseguradora || "",
                             PolizaRespCivil: extractedData.autotransporte.numPolizaSeguro || "",
+                            AseguraCarga: extractedData.autotransporte.aseguraCarga,
+                            PolizaCarga: extractedData.autotransporte.polizaCarga,
+                            PrimaSeguro: extractedData.autotransporte.primaSeguro,
                         },
+                        Remolques: extractedData.remolques.map(r => ({
+                            SubTipoRem: r.subTipoRem,
+                            Placa: r.placa,
+                        })),
                     },
                 },
 
@@ -126,6 +156,17 @@ function transformToCFDI(extractedData: ExtractedData) {
                         RFCFigura: extractedData.operador.rfc,
                         NombreFigura: extractedData.operador.nombre,
                         NumLicencia: extractedData.operador.licencia,
+                        Domicilio: extractedData.operador.domicilio ? {
+                            Calle: extractedData.operador.domicilio.calle,
+                            NumeroExterior: extractedData.operador.domicilio.numeroExterior,
+                            NumeroInterior: extractedData.operador.domicilio.numeroInterior,
+                            Colonia: extractedData.operador.domicilio.colonia,
+                            Localidad: extractedData.operador.domicilio.localidad,
+                            Municipio: extractedData.operador.domicilio.municipio,
+                            CodigoPostal: extractedData.operador.domicilio.codigoPostal,
+                            Estado: extractedData.operador.domicilio.estado,
+                            Pais: "MEX",
+                        } : undefined,
                     },
                 ],
             },

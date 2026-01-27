@@ -171,6 +171,21 @@ export async function GET(
             }));
             return NextResponse.json(transformedRegimes);
         }
+        else if (name === "unidadespeso") {
+            // Database catalog for Weight/Measurement Units (c_ClaveUnidadPeso)
+            const unidades = await prisma.claveUnidadPeso.findMany({
+                where: { activo: true },
+                select: {
+                    clave: true,
+                    nombre: true,
+                    descripcion: true,
+                },
+                orderBy: { clave: 'asc' },
+            });
+            return NextResponse.json(
+                unidades.map(u => ({ value: u.clave, name: u.nombre, description: u.descripcion || u.nombre }))
+            );
+        }
         else if (name === "products" && keyword) {
             // Search products
             data = await facturamaService.getCatalog(`ProductsOrServices?keyword=${encodeURIComponent(keyword)}`);

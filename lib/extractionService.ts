@@ -15,14 +15,28 @@ export type ExtractedData = {
         origen: {
             nombre: string;
             rfc?: string;
+            calle?: string;
+            numeroExterior?: string;
+            numeroInterior?: string;
+            colonia?: string;
+            localidad?: string;
+            municipio?: string;
             codigoPostal: string;
             estado: string;
+            distanciaRecorrida?: number;
         };
         destino: {
             nombre: string;
             rfc?: string;
+            calle?: string;
+            numeroExterior?: string;
+            numeroInterior?: string;
+            colonia?: string;
+            localidad?: string;
+            municipio?: string;
             codigoPostal: string;
             estado: string;
+            distanciaRecorrida?: number;
         };
     };
     mercancias: {
@@ -39,6 +53,11 @@ export type ExtractedData = {
         embalaje?: string;
         descripEmbalaje?: string;
     }[];
+    mercanciasTotales: {
+        unidadPeso: string;
+        pesoBrutoTotal: number;
+        numTotalMercancias: number;
+    };
     autotransporte: {
         placaVehiculo: string;
         modeloAnio: number;
@@ -47,12 +66,30 @@ export type ExtractedData = {
         permSCT?: string;
         numPermisoSCT?: string;
         configVehicular?: string;
+        pesoBrutoVehicular?: number;
+        aseguraCarga?: string;
+        polizaCarga?: string;
+        primaSeguro?: number;
     };
     operador: {
         nombre: string;
         rfc: string;
         licencia: string;
+        domicilio?: {
+            calle?: string;
+            numeroExterior?: string;
+            numeroInterior?: string;
+            colonia?: string;
+            localidad?: string;
+            municipio?: string;
+            codigoPostal?: string;
+            estado?: string;
+        };
     };
+    remolques: {
+        subTipoRem: string;
+        placa: string;
+    }[];
     confidence: {
         [key: string]: number;
     };
@@ -142,20 +179,30 @@ EJEMPLOS COMUNES en transporte mexicano:
 • Madera y productos de madera → "30100000"
 
 **Clave Unidad (claveUnidad)**
-- Extrae la unidad de medida y asigna su clave SAT del catálogo c_ClaveUnidad
-- SIEMPRE debe tener una clave válida
+- Extrae la unidad de medida y asigna su clave SAT del catálogo c_ClaveUnidadPeso
+- SIEMPRE debe tener una clave válida basada en lo que encuentres en el documento
+- Mapea abreviaturas comunes a las claves SAT oficiales
 
-EJEMPLOS de unidades SAT:
-• Kilogramo / kg → "KGM"
-• Tonelada / ton → "TNE"
-• Metro cúbico / m³ → "MTQ"
-• Metro cuadrado / m² → "MTK"
-• Litro / lt → "LTR"
-• Pieza / pza → "H87"
-• Caja / caja → "XBX"
-• Palet / tarima → "XPK"
-• Metro / m → "MTR"
-• Mililitro / ml → "MLT"
+EJEMPLOS de mapeo de unidades (CRÍTICO - usa estas claves SAT):
+• Kilogramo / kg / KG / Kgs / kilos → "KGM"
+• Tonelada / ton / TON / Tons / toneladas / t → "TNE"
+• Libra / lb / LB / Lbs / libras → "LBR"
+• Gramo / g / gr / GR / gramos → "GRM"
+• Onza / oz / OZ / onzas → "ONZ"
+• Metro cúbico / m³ / m3 / M3 → "MTQ"
+• Litro / lt / LT / L / litros → "LTR"
+• Mililitro / ml / ML → "MLT"
+• Galón / gal / GAL / galones → "GLL"
+• Pieza / pza / PZA / pz / unidad / und → "H87"
+• Caja / caja / cajas → "XBX"
+• Pallet / tarima / pallets → "XPX"
+• Paquete / paq / paquetes → "XPK"
+• Metro / m / M / metros / mts → "MTR"
+• Barril / barr / barriles → "XBA"
+• Saco / sacos → "XSA"
+• Rollo / rollos → "XRO"
+• Bulto / bultos → "XBH"
+• Tambor / tambores / tambo → "XDR"
 
 **Material Peligroso**
 - Detecta si por la naturaleza de la carga es material peligroso (químicos, combustibles, gases, etc.)
@@ -173,12 +220,24 @@ Estructura JSON requerida (Carta Porte 3.1):
     "origen": {
       "nombre": "string o vacío",
       "rfc": "string o vacío",
+      "calle": "string o vacío",
+      "numeroExterior": "string o vacío",
+      "numeroInterior": "string o vacío",
+      "colonia": "string o vacío",
+      "localidad": "string o vacío",
+      "municipio": "string o vacío",
       "codigoPostal": "string o vacío",
       "estado": "string o vacío"
     },
     "destino": {
       "nombre": "string o vacío",
       "rfc": "string o vacío",
+      "calle": "string o vacío",
+      "numeroExterior": "string o vacío",
+      "numeroInterior": "string o vacío",
+      "colonia": "string o vacío",
+      "localidad": "string o vacío",
+      "municipio": "string o vacío",
       "codigoPostal": "string o vacío",
       "estado": "string o vacío"
     }
@@ -304,14 +363,28 @@ function getEmptyData(): ExtractedData {
             origen: {
                 nombre: "",
                 rfc: "",
+                calle: "",
+                numeroExterior: "",
+                numeroInterior: "",
+                colonia: "",
+                localidad: "",
+                municipio: "",
                 codigoPostal: "",
                 estado: "",
+                distanciaRecorrida: 0,
             },
             destino: {
                 nombre: "",
                 rfc: "",
+                calle: "",
+                numeroExterior: "",
+                numeroInterior: "",
+                colonia: "",
+                localidad: "",
+                municipio: "",
                 codigoPostal: "",
                 estado: "",
+                distanciaRecorrida: 0,
             },
         },
         mercancias: [
@@ -330,6 +403,11 @@ function getEmptyData(): ExtractedData {
                 descripEmbalaje: "",
             },
         ],
+        mercanciasTotales: {
+            unidadPeso: "KGM",
+            pesoBrutoTotal: 0,
+            numTotalMercancias: 1,
+        },
         autotransporte: {
             placaVehiculo: "",
             modeloAnio: 0,
@@ -338,12 +416,27 @@ function getEmptyData(): ExtractedData {
             permSCT: "",
             numPermisoSCT: "",
             configVehicular: "",
+            pesoBrutoVehicular: 0,
+            aseguraCarga: "",
+            polizaCarga: "",
+            primaSeguro: 0,
         },
         operador: {
             nombre: "",
             rfc: "",
             licencia: "",
+            domicilio: {
+                calle: "",
+                numeroExterior: "",
+                numeroInterior: "",
+                colonia: "",
+                localidad: "",
+                municipio: "",
+                codigoPostal: "",
+                estado: "",
+            },
         },
+        remolques: [],
         confidence: {
             "receptor.rfc": 0.0,
             "receptor.nombre": 0.0,

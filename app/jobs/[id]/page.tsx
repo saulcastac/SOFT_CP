@@ -29,14 +29,28 @@ type ExtractedData = {
         origen: {
             nombre: string;
             rfc?: string;
+            calle?: string;
+            numeroExterior?: string;
+            numeroInterior?: string;
+            colonia?: string;
+            localidad?: string;
+            municipio?: string;
             codigoPostal: string;
             estado: string;
+            distanciaRecorrida?: number;
         };
         destino: {
             nombre: string;
             rfc?: string;
+            calle?: string;
+            numeroExterior?: string;
+            numeroInterior?: string;
+            colonia?: string;
+            localidad?: string;
+            municipio?: string;
             codigoPostal: string;
             estado: string;
+            distanciaRecorrida?: number;
         };
     };
     mercancias: {
@@ -53,6 +67,11 @@ type ExtractedData = {
         embalaje?: string;
         descripEmbalaje?: string;
     }[];
+    mercanciasTotales: {
+        unidadPeso: string;
+        pesoBrutoTotal: number;
+        numTotalMercancias: number;
+    };
     autotransporte: {
         placaVehiculo: string;
         modeloAnio: number;
@@ -61,12 +80,30 @@ type ExtractedData = {
         permSCT?: string;
         numPermisoSCT?: string;
         configVehicular?: string;
+        pesoBrutoVehicular?: number;
+        aseguraCarga?: string;
+        polizaCarga?: string;
+        primaSeguro?: number;
     };
     operador: {
         nombre: string;
         rfc: string;
         licencia: string;
+        domicilio?: {
+            calle?: string;
+            numeroExterior?: string;
+            numeroInterior?: string;
+            colonia?: string;
+            localidad?: string;
+            municipio?: string;
+            codigoPostal?: string;
+            estado?: string;
+        };
     };
+    remolques: {
+        subTipoRem: string;
+        placa: string;
+    }[];
     confidence: {
         [key: string]: number;
     };
@@ -116,7 +153,47 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
             setJob(data);
 
             if (data.extractedJson) {
-                setExtractedData(JSON.parse(data.extractedJson));
+                const parsed = JSON.parse(data.extractedJson);
+
+                // Ensure new fields exist for backward compatibility
+                if (!parsed.mercanciasTotales) {
+                    parsed.mercanciasTotales = {
+                        unidadPeso: "KGM",
+                        pesoBrutoTotal: 0,
+                        numTotalMercancias: 1,
+                    };
+                }
+                if (!parsed.remolques) {
+                    parsed.remolques = [];
+                }
+                if (!parsed.autotransporte.pesoBrutoVehicular) {
+                    parsed.autotransporte.pesoBrutoVehicular = 0;
+                }
+                if (!parsed.autotransporte.aseguraCarga) {
+                    parsed.autotransporte.aseguraCarga = "";
+                    parsed.autotransporte.polizaCarga = "";
+                    parsed.autotransporte.primaSeguro = 0;
+                }
+                if (!parsed.operador.domicilio) {
+                    parsed.operador.domicilio = {
+                        calle: "",
+                        numeroExterior: "",
+                        numeroInterior: "",
+                        colonia: "",
+                        localidad: "",
+                        municipio: "",
+                        codigoPostal: "",
+                        estado: "",
+                    };
+                }
+                if (!parsed.ubicaciones.origen.distanciaRecorrida) {
+                    parsed.ubicaciones.origen.distanciaRecorrida = 0;
+                }
+                if (!parsed.ubicaciones.destino.distanciaRecorrida) {
+                    parsed.ubicaciones.destino.distanciaRecorrida = 0;
+                }
+
+                setExtractedData(parsed);
             }
         } catch (error) {
             console.error("Failed to fetch job:", error);
@@ -455,6 +532,60 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 />
                             </div>
                             <div>
+                                <label className="block text-sm font-medium mb-1">Calle</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.origen.calle || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.origen.calle", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Número Exterior</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.origen.numeroExterior || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.origen.numeroExterior", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Número Interior</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.origen.numeroInterior || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.origen.numeroInterior", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Colonia</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.origen.colonia || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.origen.colonia", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Localidad</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.origen.localidad || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.origen.localidad", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Municipio</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.origen.municipio || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.origen.municipio", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium mb-1">Código Postal</label>
                                 <input
                                     type="text"
@@ -487,6 +618,69 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                     type="text"
                                     value={extractedData.ubicaciones.destino.nombre}
                                     onChange={(e) => handleFieldChange("ubicaciones.destino.nombre", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">RFC (opcional)</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.destino.rfc || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.destino.rfc", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Calle</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.destino.calle || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.destino.calle", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Número Exterior</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.destino.numeroExterior || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.destino.numeroExterior", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Número Interior</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.destino.numeroInterior || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.destino.numeroInterior", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Colonia</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.destino.colonia || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.destino.colonia", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Localidad</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.destino.localidad || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.destino.localidad", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Municipio</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.ubicaciones.destino.municipio || ""}
+                                    onChange={(e) => handleFieldChange("ubicaciones.destino.municipio", e.target.value)}
                                     className="w-full px-3 py-2 rounded-lg border bg-background"
                                 />
                             </div>
@@ -566,7 +760,7 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                         )}
                                     </div>
                                     <CatalogSelect
-                                        catalog="units"
+                                        catalog="unidadespeso"
                                         value={item.claveUnidad || ""}
                                         onChange={(value) => handleFieldChange(`mercancias.${index}.claveUnidad`, value)}
                                         placeholder="Seleccionar unidad"
@@ -646,6 +840,43 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                             </div>
                         </div>
                     ))}
+                </section>
+
+                {/* 3.5 Totales de Mercancías */}
+                <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <h2 className="flex items-center gap-2 text-xl font-bold mb-4 pb-2 border-b border-border">
+                        <Package className="w-5 h-5 text-primary" />
+                        Totales de Mercancías
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Unidad de Peso</label>
+                            <CatalogSelect
+                                catalog="unidadespeso"
+                                value={extractedData.mercanciasTotales.unidadPeso}
+                                onChange={(value) => handleFieldChange("mercanciasTotales.unidadPeso", value)}
+                                placeholder="Seleccionar unidad"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Peso Bruto Total</label>
+                            <input
+                                type="number"
+                                value={extractedData.mercanciasTotales.pesoBrutoTotal}
+                                onChange={(e) => handleFieldChange("mercanciasTotales.pesoBrutoTotal", Number(e.target.value))}
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Número Total de Mercancías</label>
+                            <input
+                                type="number"
+                                value={extractedData.mercanciasTotales.numTotalMercancias}
+                                onChange={(e) => handleFieldChange("mercanciasTotales.numTotalMercancias", Number(e.target.value))}
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                            />
+                        </div>
+                    </div>
                 </section>
 
                 {/* 4. Autotransporte */}
@@ -729,7 +960,115 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                                 placeholder="Seleccionar configuración"
                             />
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Peso Bruto Vehicular (kg)</label>
+                            <input
+                                type="number"
+                                value={extractedData.autotransporte.pesoBrutoVehicular || ""}
+                                onChange={(e) => handleFieldChange("autotransporte.pesoBrutoVehicular", Number(e.target.value))}
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Aseguradora de Carga</label>
+                            <input
+                                type="text"
+                                value={extractedData.autotransporte.aseguraCarga || ""}
+                                onChange={(e) => handleFieldChange("autotransporte.aseguraCarga", e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Póliza de Carga</label>
+                            <input
+                                type="text"
+                                value={extractedData.autotransporte.polizaCarga || ""}
+                                onChange={(e) => handleFieldChange("autotransporte.polizaCarga", e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Prima de Seguro</label>
+                            <input
+                                type="number"
+                                value={extractedData.autotransporte.primaSeguro || ""}
+                                onChange={(e) => handleFieldChange("autotransporte.primaSeguro", Number(e.target.value))}
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                            />
+                        </div>
                     </div>
+                </section>
+
+                {/* 4.5 Remolques */}
+                <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-border">
+                        <h2 className="flex items-center gap-2 text-xl font-bold">
+                            <Truck className="w-5 h-5 text-primary" />
+                            Remolques
+                        </h2>
+                        <button
+                            disabled={extractedData.remolques.length >= 2}
+                            onClick={() => {
+                                handleFieldChange("remolques", [
+                                    ...extractedData.remolques,
+                                    { subTipoRem: "", placa: "" }
+                                ]);
+                            }}
+                            className="px-3 py-1 text-sm rounded border border-primary/20 bg-primary/10 hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            + Agregar Remolque
+                        </button>
+                    </div>
+                    {extractedData.remolques.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">No hay remolques. Haz clic en "Agregar Remolque" para añadir uno (máx. 2).</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {extractedData.remolques.map((remolque, index) => (
+                                <div key={index} className="p-4 border border-border rounded-lg bg-background/50">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h3 className="font-semibold">Remolque #{index + 1}</h3>
+                                        <button
+                                            onClick={() => {
+                                                const newRemolques = extractedData.remolques.filter((_, i) => i !== index);
+                                                handleFieldChange("remolques", newRemolques);
+                                            }}
+                                            className="text-sm text-red-500 hover:text-red-700"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Subtipo de Remolque</label>
+                                            <CatalogSelect
+                                                catalog="remolques"
+                                                value={remolque.subTipoRem}
+                                                onChange={(value) => {
+                                                    const newRemolques = [...extractedData.remolques];
+                                                    newRemolques[index].subTipoRem = value;
+                                                    handleFieldChange("remolques", newRemolques);
+                                                }}
+                                                placeholder="Seleccionar subtipo"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Placa</label>
+                                            <input
+                                                type="text"
+                                                value={remolque.placa}
+                                                onChange={(e) => {
+                                                    const newRemolques = [...extractedData.remolques];
+                                                    newRemolques[index].placa = e.target.value;
+                                                    handleFieldChange("remolques", newRemolques);
+                                                }}
+                                                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </section>
 
                 {/* 5. Operador */}
@@ -777,8 +1116,69 @@ export default function JobReviewPage({ params }: { params: Promise<{ id: string
                             />
                         </div>
                     </div>
+
+                    {/* Domicilio del Operador */}
+                    <div className="mt-6 pt-4 border-t border-border">
+                        <h3 className="text-md font-semibold mb-4">Domicilio del Operador</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Calle</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.operador.domicilio?.calle || ""}
+                                    onChange={(e) => handleFieldChange("operador.domicilio.calle", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Número Exterior</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.operador.domicilio?.numeroExterior || ""}
+                                    onChange={(e) => handleFieldChange("operador.domicilio.numeroExterior", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Colonia</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.operador.domicilio?.colonia || ""}
+                                    onChange={(e) => handleFieldChange("operador.domicilio.colonia", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Municipio</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.operador.domicilio?.municipio || ""}
+                                    onChange={(e) => handleFieldChange("operador.domicilio.municipio", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Código Postal</label>
+                                <input
+                                    type="text"
+                                    value={extractedData.operador.domicilio?.codigoPostal || ""}
+                                    onChange={(e) => handleFieldChange("operador.domicilio.codigoPostal", e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Estado</label>
+                                <CatalogSelect
+                                    catalog="states"
+                                    value={extractedData.operador.domicilio?.estado || ""}
+                                    onChange={(value) => handleFieldChange("operador.domicilio.estado", value)}
+                                    placeholder="Seleccionar estado"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </section>
             </main>
-        </div>
+        </div >
     );
 }
