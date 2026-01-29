@@ -5,11 +5,11 @@ const https = require('https');
 
 // Load env from root manually
 const envPath = path.resolve(__dirname, '../.env');
-let envs = {};
+let envs: Record<string, string> = {};
 
 if (fs.existsSync(envPath)) {
     const content = fs.readFileSync(envPath, 'utf8');
-    content.split(/\r?\n/).forEach(line => {
+    content.split(/\r?\n/).forEach((line: string) => {
         line = line.trim();
         if (!line || line.startsWith('#')) return;
 
@@ -40,20 +40,20 @@ if (!USERNAME || !PASSWORD) {
 
 const CREDENTIALS = Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64');
 
-async function testEndpoint(baseUrl, prefix, catalog, query) {
+async function testEndpoint(baseUrl: string, prefix: string, catalog: string, query: string) {
     const url = `${baseUrl}/${prefix}/catalogs/${catalog}${query}`;
     console.log(`\nTesting: ${url}`);
 
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
         const req = https.request(url, {
             method: 'GET',
             headers: {
                 'Authorization': `Basic ${CREDENTIALS}`
             }
-        }, (res) => {
+        }, (res: any) => {
             console.log(`Status: ${res.statusCode} ${res.statusMessage}`);
             let data = '';
-            res.on('data', (chunk) => {
+            res.on('data', (chunk: any) => {
                 data += chunk;
             });
             res.on('end', () => {
@@ -69,7 +69,7 @@ async function testEndpoint(baseUrl, prefix, catalog, query) {
             });
         });
 
-        req.on('error', (e) => {
+        req.on('error', (e: any) => {
             console.error('Request error:', e.message);
             resolve();
         });
