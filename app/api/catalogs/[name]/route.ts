@@ -138,6 +138,14 @@ export async function GET(
         // Specific handling for complex catalogs
         if (name === "states") {
             // Static catalog for Mexican States
+            if (keyword) {
+                const lowerKeyword = keyword.toLowerCase();
+                const filteredStates = MEXICAN_STATES.filter(s =>
+                    s.value.toLowerCase().includes(lowerKeyword) ||
+                    s.name.toLowerCase().includes(lowerKeyword)
+                );
+                return NextResponse.json(filteredStates);
+            }
             return NextResponse.json(MEXICAN_STATES);
         }
         else if (name === "vehiculos") {
@@ -173,14 +181,24 @@ export async function GET(
         }
         else if (name === "unidadespeso") {
             // Database catalog for Weight/Measurement Units (c_ClaveUnidadPeso)
+            const where: any = { activo: true };
+            if (keyword) {
+                where.OR = [
+                    { clave: { contains: keyword, mode: 'insensitive' } },
+                    { nombre: { contains: keyword, mode: 'insensitive' } },
+                    { descripcion: { contains: keyword, mode: 'insensitive' } },
+                ];
+            }
+
             const unidades = await prisma.claveUnidadPeso.findMany({
-                where: { activo: true },
+                where,
                 select: {
                     clave: true,
                     nombre: true,
                     descripcion: true,
                 },
                 orderBy: { clave: 'asc' },
+                take: keyword ? 50 : undefined
             });
             return NextResponse.json(
                 unidades.map(u => ({ value: u.clave, name: u.nombre, description: u.descripcion || u.nombre }))

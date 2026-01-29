@@ -152,7 +152,7 @@ export class FacturamaService {
      */
     async getCatalog(catalogName: string): Promise<any[]> {
         try {
-            const url = `${this.baseUrl}/api-lite/catalogs/${catalogName}`;
+            const url = `${this.baseUrl}/api/catalogs/${catalogName}`;
             console.log(`[Facturama] Fetching catalog: ${url}`);
             console.log(`[Facturama] Using credentials: ${this.config.username} (sandbox: ${this.config.sandbox})`);
 
